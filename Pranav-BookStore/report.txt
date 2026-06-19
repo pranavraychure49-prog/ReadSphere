@@ -1,0 +1,262 @@
+================================================================================
+                       BOOKSTORE APPLICATION - PROJECT REPORT
+================================================================================
+Date           : June 18, 2026
+Project Name   : BookStore
+Artifact ID    : BookStore
+Group ID       : com.app
+Version        : 0.0.1-SNAPSHOT
+Language       : Java 21
+Framework      : Spring Boot 4.1.0
+Build Tool     : Maven
+================================================================================
+
+
+1. PROJECT OVERVIEW
+--------------------------------------------------------------------------------
+The BookStore application is a Spring Boot-based utility that reads a books
+catalog from a local CSV file, transforms the data into Java objects, and
+writes the result as a formatted JSON file stored locally. It also exposes
+in-memory data operations such as searching a book by name, adding new books,
+and computing library statistics from the loaded catalog.
+
+The application currently serves as a data-processing layer — there are no
+REST endpoints exposed yet. All processing is triggered at startup via the
+main application entry point.
+
+
+2. PROJECT STRUCTURE
+--------------------------------------------------------------------------------
+BookStore/
+├── pom.xml
+├── report.txt
+└── src/
+    ├── main/
+    │   ├── java/com/app/BookStore/
+    │   │   ├── BookStoreApplication.java          (Entry Point)
+    │   │   ├── model/
+    │   │   │   ├── Book.java                      (CSV/JSON Data Model)
+    │   │   │   └── LibraryStatistics.java         (Statistics Model)
+    │   │   └── repository/
+    │   │       └── readData.java                  (CSV Reader + JSON Writer)
+    │   └── resources/
+    │       ├── application.properties
+    │       ├── static/
+    │       ├── templates/
+    │       └── data/
+    │           ├── books_catalog.csv              (Input Data)
+    │           └── books_catalog.json             (Output - generated on run)
+    └── test/
+        └── java/com/app/BookStore/
+            └── BookStoreApplicationTests.java
+
+
+3. DEPENDENCIES
+--------------------------------------------------------------------------------
+Dependency                        Version       Purpose
+----------------------------------+--------------+-----------------------------
+spring-boot-starter-webmvc        4.1.0         Spring MVC web support
+spring-boot-starter-webmvc-test   4.1.0         Testing support (test scope)
+lombok                            (managed)     Boilerplate code generation
+opencsv                           5.9           CSV parsing and bean mapping
+jackson-databind                  2.18.2        Java object to JSON conversion
+
+
+4. SOURCE FILES - DETAILED DESCRIPTION
+--------------------------------------------------------------------------------
+
+4.1 BookStoreApplication.java
+    Package : com.app.BookStore
+    Role    : Application entry point
+    Details : Annotated with @SpringBootApplication. Bootstraps the Spring
+              context using SpringApplication.run(). After startup, it fetches
+              the readData bean from the context and calls convertCsvToJson()
+              to trigger the CSV-to-JSON conversion process.
+
+4.2 model/Book.java
+    Package : com.app.BookStore.model
+    Role    : Data model representing a single book record
+    Details : Maps directly to each column of books_catalog.csv using
+              OpenCSV's @CsvBindByName annotation. Lombok's @Data annotation
+              auto-generates getters, setters, toString, equals, and hashCode.
+
+    Fields:
+    - id            (int)     - Unique identifier for the book
+    - bookName      (String)  - Title of the book
+    - authorName    (String)  - Author's full name
+    - category      (String)  - Subject category (e.g., Programming, DevOps)
+    - publisher     (String)  - Publishing company name
+    - price         (double)  - Book price in INR
+    - quantity      (int)     - Available stock count
+    - publishedYear (int)     - Year of publication
+    - isbn          (String)  - International Standard Book Number
+    - language      (String)  - Language of the book
+
+4.3 model/LibraryStatistics.java
+    Package : com.app.BookStore.model
+    Role    : Model to hold computed statistics about the book catalog
+    Details : Annotated with @Data, @NoArgsConstructor, @AllArgsConstructor
+              from Lombok.
+
+    Fields:
+    - totalBooks             (Long)               - Total number of book titles
+    - totalInventory         (Long)               - Sum of all quantities
+    - totalInventoryValue    (Double)             - Sum of (price * quantity)
+    - averageBookPrice       (Double)             - Average price across all books
+    - highestPricedBook      (String)             - Name of the most expensive book
+    - lowestPricedBook       (String)             - Name of the cheapest book
+    - categoryWiseBooks      (Map<String, Long>)  - Book count per category
+    - authorWiseBooks        (Map<String, Long>)  - Book count per author
+    - averagePriceByCategory (Map<String, Double>)- Avg price per category
+    - publisherWiseBooks     (Map<String, Long>)  - Book count per publisher
+
+4.4 repository/readData.java
+    Package : com.app.BookStore.repository
+    Role    : Core data service — CSV reading, JSON writing, and data operations
+    Details : Annotated with @Component (Spring-managed bean) and @Getter
+              (Lombok). Holds the in-memory list of books after loading.
+
+    Methods:
+    ┌──────────────────────────┬────────────────────────────────────────────────┐
+    │ Method                   │ Description                                    │
+    ├──────────────────────────┼────────────────────────────────────────────────┤
+    │ convertCsvToJson()       │ Reads books_catalog.csv using CsvToBeanBuilder │
+    │                          │ and maps rows to List<Book>. Then writes the   │
+    │                          │ list as pretty-printed JSON to                 │
+    │                          │ books_catalog.json using Jackson ObjectMapper. │
+    ├──────────────────────────┼────────────────────────────────────────────────┤
+    │ getBookByName(String)    │ Performs a case-insensitive linear search over │
+    │                          │ the in-memory books list and returns the       │
+    │                          │ matching Book, or null if not found.           │
+    ├──────────────────────────┼────────────────────────────────────────────────┤
+    │ addBooks(Book)           │ Appends a new Book object to the in-memory     │
+    │                          │ list and returns it. Returns null if the list  │
+    │                          │ is not yet initialized.                        │
+    ├──────────────────────────┼────────────────────────────────────────────────┤
+    │ getLibraryStatistics()   │ Computes and returns a LibraryStatistics       │
+    │                          │ object using Java Streams: average price,      │
+    │                          │ total books, total inventory, total value,     │
+    │                          │ highest and lowest priced book names.          │
+    └──────────────────────────┴────────────────────────────────────────────────┘
+
+
+5. DATA FILE - books_catalog.csv
+--------------------------------------------------------------------------------
+Location  : src/main/java/com/app/BookStore/data/books_catalog.csv
+Records   : 20 books
+Columns   : id, bookName, authorName, category, publisher, price, quantity,
+            publishedYear, isbn, language
+
+Categories covered:
+  - Programming       (7 books) : Clean Code, Effective Java, Spring in Action,
+                                  Java Concurrency in Practice, The Pragmatic
+                                  Programmer, Head First Java, You Dont Know JS
+  - Software Design   (2 books) : Design Patterns, Refactoring
+  - Architecture      (3 books) : Microservices Patterns, Domain Driven Design,
+                                  Building Microservices
+  - Algorithms        (2 books) : Grokking Algorithms, Introduction to Algorithms
+  - System Design     (1 book)  : System Design Interview
+  - Interview Prep    (1 book)  : Cracking the Coding Interview
+  - JavaScript        (1 book)  : You Dont Know JS
+  - Spring            (1 book)  : Spring Start Here
+  - DevOps            (3 books) : Kubernetes Up and Running, Docker Deep Dive,
+                                  The Phoenix Project
+
+Price range : INR 550 (Head First Java) — INR 1500 (Introduction to Algorithms)
+
+
+6. DATA FLOW
+--------------------------------------------------------------------------------
+
+  [books_catalog.csv]
+         |
+         v
+  CsvToBeanBuilder (opencsv)
+         |
+         v
+  List<Book>  (in-memory)
+         |
+         +---------> getBookByName()       --> Book
+         |
+         +---------> addBooks()            --> Book
+         |
+         +---------> getLibraryStatistics() --> LibraryStatistics
+         |
+         v
+  ObjectMapper (jackson)
+         |
+         v
+  [books_catalog.json]  (local file output)
+
+
+7. HOW TO RUN
+--------------------------------------------------------------------------------
+Prerequisites:
+  - Java 21 installed
+  - Maven installed (or use the bundled mvnw wrapper)
+
+Steps:
+  1. Navigate to the project root directory:
+     cd "Java Backend P99 Soft Training\BookStore\BookStore"
+
+  2. Build the project:
+     mvnw clean install
+
+  3. Run the application:
+     mvnw spring-boot:run
+
+  4. On successful run, the console will print:
+     Done! JSON saved to: src/main/java/com/app/BookStore/data/books_catalog.json
+     Total books converted: 20
+
+  5. The output JSON file will be created at:
+     src/main/java/com/app/BookStore/data/books_catalog.json
+
+
+8. OUTPUT SAMPLE (books_catalog.json)
+--------------------------------------------------------------------------------
+[
+  {
+    "id" : 1,
+    "bookName" : "Clean Code",
+    "authorName" : "Robert C. Martin",
+    "category" : "Programming",
+    "publisher" : "Prentice Hall",
+    "price" : 599.0,
+    "quantity" : 20,
+    "publishedYear" : 2008,
+    "isbn" : "9780132350884",
+    "language" : "English"
+  },
+  ...
+]
+
+
+9. KNOWN LIMITATIONS / FUTURE IMPROVEMENTS
+--------------------------------------------------------------------------------
+- File paths in readData.java are hardcoded relative paths. These should be
+  moved to application.properties for better configurability.
+
+- No REST API layer exists yet. Future work can add @RestController classes
+  to expose endpoints like:
+    GET  /books          -> returns all books
+    GET  /books/{name}   -> search by book name
+    POST /books          -> add a new book
+    GET  /books/stats    -> returns library statistics
+
+- addBooks() only adds to the in-memory list. It does not persist back to the
+  CSV or JSON file. A save/persist method should be added.
+
+- getLibraryStatistics() does not yet populate the Map-based fields
+  (categoryWiseBooks, authorWiseBooks, etc.). These are declared in the model
+  but not computed in the method.
+
+- No input validation on the Book model. Adding Bean Validation (@NotNull,
+  @Min, etc.) would make the app more robust.
+
+- No exception handling for file-not-found or malformed CSV scenarios.
+
+
+================================================================================
+                              END OF REPORT
+================================================================================
