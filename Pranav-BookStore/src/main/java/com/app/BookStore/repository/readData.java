@@ -160,4 +160,135 @@ public class readData
 
         return libraryStatistics;
     }
+
+    public synchronized Book updateBook(int id, Book updatedBook) {
+        if (updatedBook == null) throw new IllegalArgumentException("updatedBook cannot be null");
+
+        // Ensure books are loaded
+        if (books == null || books.isEmpty()) {
+            return null;
+        }
+
+        // Find the book with the given id
+        Book existingBook = null;
+
+        for (Book book : books) {
+            if (book.getId() == id) {
+                existingBook = book;
+                break;
+            }
+        }
+
+        // If book not found, return null
+        if (existingBook == null) {
+            return null;
+        }
+
+        // Validate and update only non-null fields
+        if (updatedBook.getBookName() != null && !updatedBook.getBookName().isBlank()) {
+            existingBook.setBookName(updatedBook.getBookName());
+        }
+        if (updatedBook.getAuthorName() != null && !updatedBook.getAuthorName().isBlank()) {
+            existingBook.setAuthorName(updatedBook.getAuthorName());
+        }
+        if (updatedBook.getCategory() != null && !updatedBook.getCategory().isBlank()) {
+            existingBook.setCategory(updatedBook.getCategory());
+        }
+        if (updatedBook.getPublisher() != null && !updatedBook.getPublisher().isBlank()) {
+            existingBook.setPublisher(updatedBook.getPublisher());
+        }
+        if (updatedBook.getPrice() >= 0) {
+            existingBook.setPrice(updatedBook.getPrice());
+        }
+        if (updatedBook.getQuantity() >= 0) {
+            existingBook.setQuantity(updatedBook.getQuantity());
+        }
+        if (updatedBook.getPublishedYear() > 0) {
+            existingBook.setPublishedYear(updatedBook.getPublishedYear());
+        }
+        if (updatedBook.getIsbn() != null && !updatedBook.getIsbn().isBlank()) {
+            existingBook.setIsbn(updatedBook.getIsbn());
+        }
+        if (updatedBook.getLanguage() != null && !updatedBook.getLanguage().isBlank()) {
+            existingBook.setLanguage(updatedBook.getLanguage());
+        }
+
+        // Persist changes to CSV and JSON
+        try {
+            rewriteCsvFile();
+            ObjectMapper mapper = new ObjectMapper();
+            mapper.writerWithDefaultPrettyPrinter()
+                  .writeValue(new File(jsonPath), books);
+            System.out.println("Book with id " + id + " updated successfully");
+        } catch (Exception e) {
+            System.err.println("Failed to update CSV or JSON file");
+            e.printStackTrace();
+        }
+
+        return existingBook;
+    }
+
+    public synchronized Book deleteById(int id) {
+        if (books == null || books.isEmpty()) {
+            return null;
+        }
+
+        Book bookToDelete = null;
+        for (Book book : books) {
+            if (book.getId() == id) {
+                bookToDelete = book;
+                break;
+            }
+        }
+
+        if (bookToDelete == null) {
+            return null;
+        }
+
+        // Remove from in-memory list
+        books.remove(bookToDelete);
+
+        // Persist changes
+        try {
+            rewriteCsvFile();
+            ObjectMapper mapper = new ObjectMapper();
+            mapper.writerWithDefaultPrettyPrinter()
+                  .writeValue(new File(jsonPath), books);
+            System.out.println("Book with id " + id + " deleted successfully");
+        } catch (Exception e) {
+            System.err.println("Failed to delete book from CSV or JSON file");
+            e.printStackTrace();
+        }
+
+        return bookToDelete;
+    }
+
+    // Helper method to rewrite the entire CSV file
+    private void rewriteCsvFile() throws Exception {
+        try (java.io.FileWriter fw = new java.io.FileWriter(csvPath, false);
+             java.io.BufferedWriter bw = new java.io.BufferedWriter(fw)) {
+
+            // Write header
+            bw.write("id,bookName,authorName,category,publisher,price,quantity,publishedYear,isbn,language");
+            bw.newLine();
+
+            // Write all books
+            for (Book book : books) {
+                String csvLine = String.format("%d,%s,%s,%s,%s,%.2f,%d,%d,%s,%s",
+                        book.getId(),
+                        escapeCsv(book.getBookName()),
+                        escapeCsv(book.getAuthorName()),
+                        escapeCsv(book.getCategory()),
+                        escapeCsv(book.getPublisher()),
+                        book.getPrice(),
+                        book.getQuantity(),
+                        book.getPublishedYear(),
+                        escapeCsv(book.getIsbn()),
+                        escapeCsv(book.getLanguage())
+                );
+                bw.write(csvLine);
+                bw.newLine();
+            }
+        }
+    }
 }

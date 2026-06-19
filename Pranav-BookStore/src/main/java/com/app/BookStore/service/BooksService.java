@@ -63,4 +63,12 @@ public class BooksService
         data.convertCsvToJson();
         return newBook;
     }
+
+    public Book updateBook(int id, Book updatedBook) {
+        return data.updateBook(id, updatedBook);
+    }
+
+    public Book deleteBook(int id) {
+        return data.deleteById(id);
+    }
 }

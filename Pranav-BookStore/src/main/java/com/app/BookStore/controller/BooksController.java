@@ -74,6 +74,16 @@ public class BooksController
         return booksService.getBooksByPublisher(publisher);
     }
 
+    @PutMapping("/books/id/{id}")
+    public Book updateBook(@PathVariable int id, @RequestBody Book updatedBook)
+    {
+        return booksService.updateBook(id, updatedBook);
+    }
 
+    @DeleteMapping("/books/id/{id}")
+    public Book deleteBook(@PathVariable int id)
+    {
+        return booksService.deleteBook(id);
+    }
 
 }
