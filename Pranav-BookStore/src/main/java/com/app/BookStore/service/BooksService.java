@@ -54,11 +54,9 @@ public class BooksService
         if (newBook.getAuthorName() == null || newBook.getAuthorName().isBlank())
             throw new IllegalArgumentException("authorName is required");
 
-        // price/quantity basic validation
         if (newBook.getPrice() < 0) throw new IllegalArgumentException("price cannot be negative");
         if (newBook.getQuantity() < 0) throw new IllegalArgumentException("quantity cannot be negative");
 
-        // Append to CSV and refresh in-memory data (readData handles id assignment)
         data.appendBookToCsv(newBook);
         data.convertCsvToJson();
         return newBook;

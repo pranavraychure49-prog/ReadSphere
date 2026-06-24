@@ -42,12 +42,8 @@ public class BooksController
     @PostMapping("/books")
     public Book createBook(@RequestBody Book newBook) throws Exception
     {
-        // Basic validation is performed in service; allow exceptions to bubble as 500 for unexpected IO
         Book created = booksService.createBook(newBook);
-
-        // After successful append+reload, regenerate the report file at project root
         reportService.generateAndSaveReport("report.txt");
-
         return created;
     }
 
@@ -68,7 +64,6 @@ public class BooksController
         return booksService.getBooksByCategory(category);
     }
 
-    // Support query-param style: /books/byPublisher?publisher=Addison-Wesley
     @GetMapping(value = "/books/byPublisher", params = "publisher")
     public List<Book> getByPublisherQuery(@RequestParam String publisher) {
         return booksService.getBooksByPublisher(publisher);

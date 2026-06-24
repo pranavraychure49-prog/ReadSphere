@@ -44,7 +44,6 @@ public class ReportService {
         report.append(String.format("  Total Titles : %d%n", stats.getTotalBooks()));
         report.append(line).append("\n\n");
 
-        // ── Summary Statistics ───────────────────────────────────────────────
         report.append("1. SUMMARY STATISTICS\n");
         report.append(thinLine).append("\n");
         report.append(String.format("  Total Book Titles        : %d%n",      stats.getTotalBooks()));
@@ -55,7 +54,6 @@ public class ReportService {
         report.append(String.format("  Lowest Priced Book       : %s%n",      stats.getLowestPricedBook()));
         report.append("\n");
 
-        // ── Full Book Catalog ────────────────────────────────────────────────
         report.append("2. FULL BOOK CATALOG\n");
         report.append(thinLine).append("\n");
         report.append(String.format("  %-4s  %-40s %-22s %-18s %8s %6s%n",
@@ -73,7 +71,6 @@ public class ReportService {
         }
         report.append("\n");
 
-        // ── Category-wise Breakdown ──────────────────────────────────────────
         report.append("3. BOOKS BY CATEGORY\n");
         report.append(thinLine).append("\n");
         report.append(String.format("  %-25s  %8s  %12s%n", "Category", "Books", "Avg Price"));
@@ -92,7 +89,6 @@ public class ReportService {
                 });
         report.append("\n");
 
-        // ── Publisher-wise Breakdown ─────────────────────────────────────────
         report.append("4. BOOKS BY PUBLISHER\n");
         report.append(thinLine).append("\n");
         report.append(String.format("  %-30s  %8s%n", "Publisher", "Books"));
@@ -105,7 +101,6 @@ public class ReportService {
                 );
         report.append("\n");
 
-        // ── Author-wise Breakdown ────────────────────────────────────────────
         report.append("5. BOOKS BY AUTHOR\n");
         report.append(thinLine).append("\n");
         report.append(String.format("  %-30s  %8s%n", "Author", "Books"));
@@ -118,7 +113,6 @@ public class ReportService {
                 );
         report.append("\n");
 
-        // ── Detailed Book Info ───────────────────────────────────────────────
         report.append("6. DETAILED BOOK INFORMATION\n");
         report.append(thinLine).append("\n");
 
@@ -135,7 +129,6 @@ public class ReportService {
             report.append("\n");
         }
 
-        // ── Footer ───────────────────────────────────────────────────────────
         report.append(line).append("\n");
         report.append("                        END OF REPORT\n");
         report.append(line).append("\n");
@@ -143,13 +136,10 @@ public class ReportService {
         return report.toString();
     }
 
-    // Helper: truncate long strings for table formatting
     private String truncate(String value, int maxLength) {
         if (value == null) return "";
         return value.length() <= maxLength ? value : value.substring(0, maxLength - 2) + "..";
     }
-
-    // Generate the report and save it to the given path. Silently prints stacktrace on failure.
     public void generateAndSaveReport(String outputPath) {
         String report = generateReport();
         try {
