@@ -1,0 +1,13 @@
+# Never copy these into the Docker build context
+target/
+.git/
+.gitignore
+.idea/
+*.iml
+*.log
+*.txt
+report.txt
+server.log
+server.err
+README.md
+HELP.md
