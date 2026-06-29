@@ -23,31 +23,24 @@ public class BooksController {
     @Autowired
     private ReportService reportService;
 
-    // =========================================================================
-    // NON-PAGINATED ENDPOINTS  (existing behaviour unchanged)
-    // =========================================================================
-
-    // GET /books/all  → 200 OK | 204 No Content
     @GetMapping("/books/all")
     public ResponseEntity<List<Book>> getAllBooks() {
         List<Book> books = booksService.getAllBooks();
         if (books == null || books.isEmpty()) {
-            return ResponseEntity.noContent().build();                   // 204
+            return ResponseEntity.noContent().build();
         }
-        return ResponseEntity.ok(books);                                 // 200
+        return ResponseEntity.ok(books);
     }
 
-    // GET /books/{name}  → 200 OK | 404 Not Found
     @GetMapping("/books/{name}")
     public ResponseEntity<Book> getBooksByName(@PathVariable String name) {
         Book book = booksService.getBookByName(name);
         if (book == null) {
-            return ResponseEntity.notFound().build();                    // 404
+            return ResponseEntity.notFound().build();
         }
-        return ResponseEntity.ok(book);                                  // 200
+        return ResponseEntity.ok(book);
     }
 
-    // POST /books/add (in-memory only)  → 201 Created | 400 Bad Request
     @PostMapping("/books/add")
     public ResponseEntity<Book> addBook(@RequestBody Book newBook) {
         if (newBook == null) {
@@ -57,7 +50,6 @@ public class BooksController {
         return ResponseEntity.status(HttpStatus.CREATED).body(added);
     }
 
-    // POST /books (persist to CSV + JSON)  → 201 Created | 400 Bad Request
     @PostMapping("/books")
     public ResponseEntity<Book> createBook(@RequestBody Book newBook) throws Exception {
         Book created = booksService.createBook(newBook);
@@ -65,19 +57,16 @@ public class BooksController {
         return ResponseEntity.status(HttpStatus.CREATED).body(created);
     }
 
-    // GET /admin  → 200 OK
     @GetMapping("/admin")
     public ResponseEntity<LibraryStatistics> getLibraryStatistics() {
         return ResponseEntity.ok(booksService.getLibraryStatistics());
     }
 
-    // GET /report  → 200 OK (plain text)
     @GetMapping(value = "/report", produces = MediaType.TEXT_PLAIN_VALUE)
     public ResponseEntity<String> getReport() {
         return ResponseEntity.ok(reportService.generateReport());
     }
 
-    // GET /books/byCategory/{category}  → 200 OK | 204 No Content
     @GetMapping("/books/byCategory/{category}")
     public ResponseEntity<List<Book>> getByCategory(@PathVariable String category) {
         List<Book> books = booksService.getBooksByCategory(category);
@@ -87,7 +76,6 @@ public class BooksController {
         return ResponseEntity.ok(books);
     }
 
-    // GET /books/byPublisher?publisher=  → 200 OK | 204 No Content
     @GetMapping(value = "/books/byPublisher", params = "publisher")
     public ResponseEntity<List<Book>> getByPublisherQuery(@RequestParam String publisher) {
         List<Book> books = booksService.getBooksByPublisher(publisher);
@@ -97,7 +85,6 @@ public class BooksController {
         return ResponseEntity.ok(books);
     }
 
-    // PUT /books/id/{id}  → 200 OK | 404 Not Found
     @PutMapping("/books/id/{id}")
     public ResponseEntity<Book> updateBook(@PathVariable int id,
                                            @RequestBody Book updatedBook) {
@@ -108,7 +95,6 @@ public class BooksController {
         return ResponseEntity.ok(updated);
     }
 
-    // DELETE /books/id/{id}  → 200 OK | 404 Not Found
     @DeleteMapping("/books/id/{id}")
     public ResponseEntity<Book> deleteBook(@PathVariable int id) {
         Book deleted = booksService.deleteBook(id);
@@ -119,7 +105,6 @@ public class BooksController {
     }
 
 
-    // GET /books/paged
     @GetMapping("/books/paged")
     public ResponseEntity<PagedResponse<Book>> getAllBooksPaged(
             @RequestParam(defaultValue = "0")   int    page,
@@ -132,7 +117,7 @@ public class BooksController {
         return ResponseEntity.ok(response);                              // 200
     }
 
-    // GET /books/paged/byCategory/{category}
+
     @GetMapping("/books/paged/byCategory/{category}")
     public ResponseEntity<PagedResponse<Book>> getBooksByCategoryPaged(
             @PathVariable                           String category,
@@ -150,7 +135,6 @@ public class BooksController {
         return ResponseEntity.ok(response);
     }
 
-    //GET /books/paged/byPublisher?publisher
     @GetMapping("/books/paged/byPublisher")
     public ResponseEntity<PagedResponse<Book>> getBooksByPublisherPaged(
             @RequestParam                           String publisher,

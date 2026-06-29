@@ -22,14 +22,6 @@ public class BooksService {
     @Autowired
     private readData data;
 
-    // =========================================================================
-    // READ – Cached
-    // =========================================================================
-
-    /**
-     * Returns all books. Result is cached under key "allBooks".
-     * Cache is evicted whenever any write/update/delete happens.
-     */
     @Cacheable(value = CacheConfig.CACHE_BOOKS, key = "'allBooks'")
     public List<Book> getAllBooks() {
         return data.getBooks();
@@ -39,9 +31,6 @@ public class BooksService {
         return data.getBookByName(name);
     }
 
-    /**
-     * Returns books filtered by category. Cached per category name.
-     */
     @Cacheable(value = CacheConfig.CACHE_BY_CATEGORY, key = "#category.toLowerCase()")
     public List<Book> getBooksByCategory(String category) {
         List<Book> books = data.getBooks();
@@ -52,9 +41,6 @@ public class BooksService {
                 .collect(Collectors.toList());
     }
 
-    /**
-     * Returns books filtered by publisher. Cached per publisher name.
-     */
     @Cacheable(value = CacheConfig.CACHE_BY_PUBLISHER, key = "#publisher.toLowerCase()")
     public List<Book> getBooksByPublisher(String publisher) {
         List<Book> books = data.getBooks();
@@ -69,14 +55,7 @@ public class BooksService {
         return data.getLibraryStatistics();
     }
 
-    // =========================================================================
-    // WRITE – Evict all caches so stale data is never served
-    // =========================================================================
 
-    /**
-     * Adds a book to the in-memory list only (no persistence).
-     * Evicts all caches.
-     */
     @Caching(evict = {
         @CacheEvict(value = CacheConfig.CACHE_BOOKS,        allEntries = true),
         @CacheEvict(value = CacheConfig.CACHE_BY_CATEGORY,  allEntries = true),
@@ -86,10 +65,6 @@ public class BooksService {
         return data.addBooks(newBook);
     }
 
-    /**
-     * Persists a new book to CSV + JSON.
-     * Evicts all caches.
-     */
     @Caching(evict = {
         @CacheEvict(value = CacheConfig.CACHE_BOOKS,        allEntries = true),
         @CacheEvict(value = CacheConfig.CACHE_BY_CATEGORY,  allEntries = true),
@@ -134,10 +109,6 @@ public class BooksService {
     public Book deleteBook(int id) {
         return data.deleteById(id);
     }
-
-    // =========================================================================
-    // PAGINATED (delegates to cached methods above)
-    // =========================================================================
 
     public PagedResponse<Book> getAllBooksPaged(int page, int size,
                                                String sortBy, String sortDir) {
